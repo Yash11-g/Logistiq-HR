@@ -7,46 +7,73 @@ export default function UploadPage() {
   const [interviewer, setInterviewer] = useState('');
   const [value, setValue] = useState('');
 
-  useEffect(() => {
-    try {
-      const safeToken = decodeURIComponent(token);
-      const decoded = JSON.parse(atob(safeToken));
-      setInterviewer(decoded.interviewer);
-      setValue(decoded.value);
-    } catch (err) {
-      console.error("❌ Token decoding failed:", err);
-    }
-  }, [token]);
+ useEffect(() => {
+  try {
+    // 1. Decode the URI-encoded token
+    const decodedURIComponent = decodeURIComponent(token);
 
-  const pdfFile = value ? `/questions/${value}_Template.pdf` : null;
+    // 2. Convert to proper base64 (if needed)
+    let base64 = decodedURIComponent.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4 !== 0) {
+      base64 += '=';
+    }
+
+    // 3. Decode base64 and parse JSON
+    const decodedStr = atob(base64);
+    const parsed = JSON.parse(decodedStr);
+
+    setInterviewer(parsed.interviewer || '');
+    setValue(parsed.value || '');
+  } catch (err) {
+    console.error("❌ Token decoding failed:", err);
+  }
+}, [token]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      console.log('Uploaded file:', file.name);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#2E65F3] p-6 text-white">
-      <div className="flex items-center mb-6">
-        <img src="/Landmark.png" alt="Logo" className="h-12" />
-      </div>
+    <div className="min-h-screen bg-[#2E65F3] p-6">
+      <img
+        src="/Landmark.png"
+        alt="Logistiq Logo"
+        className="h-14 mb-6 ml-2"
+      />
 
-      <div className="bg-white text-black max-w-xl mx-auto p-6 rounded-xl shadow-xl text-center">
-        <h1 className="text-2xl font-bold mb-4 text-blue-800">Transcript Upload Page</h1>
+      <div className="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg">
+        <h1 className="text-xl font-bold text-center text-blue-700 mb-4">
+          Transcript Upload Page
+        </h1>
 
-        {interviewer && value ? (
-          <>
-            <p className="mb-2 font-semibold">Interviewer: <span className="text-gray-800">{interviewer}</span></p>
-            <p className="mb-6 font-semibold">Assigned Value: <span className="text-gray-800">{value}</span></p>
+        <p className="text-sm text-gray-700 mb-1">
+          <strong>Interviewer:</strong> {interviewer || 'N/A'}
+        </p>
+        <p className="text-sm text-gray-700 mb-4">
+          <strong>Assigned Value:</strong> {value || 'N/A'}
+        </p>
 
-            {pdfFile && (
-              <a
-                href={pdfFile}
-                download
-                className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-              >
-                📄 Download {value} Questions
-              </a>
-            )}
-          </>
-        ) : (
-          <p className="text-red-600 font-semibold">Invalid or expired link.</p>
+        {value && (
+          <a
+            href={`/questions/${value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()}_Template.pdf`}
+            download
+            className="block bg-blue-600 text-white text-center py-2 px-4 rounded hover:bg-blue-700 mb-4"
+          >
+            Download {value} Question Set
+          </a>
         )}
+
+        <label className="block text-gray-700 text-sm mb-2">
+          Upload your transcript here
+        </label>
+        <input
+          type="file"
+          onChange={handleFileChange}
+          className="w-full border border-gray-300 rounded p-2"
+        />
       </div>
     </div>
   );

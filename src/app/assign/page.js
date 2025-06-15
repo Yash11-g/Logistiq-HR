@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Buffer } from 'buffer';
 
 const valueOptions = ['Integrity', 'Listen', 'Empower', 'ADAPT', 'Deliver'];
 
@@ -18,6 +17,12 @@ export default function AssignPage() {
     setAssignments(updated);
   };
 
+  const encodeToken = (data) => {
+    const json = JSON.stringify(data);
+    const base64 = btoa(unescape(encodeURIComponent(json)));
+    return base64;
+  };
+
   const handleGenerate = (index) => {
     const { interviewer, value } = assignments[index];
     if (!interviewer || !value) {
@@ -25,7 +30,7 @@ export default function AssignPage() {
       return;
     }
 
-const token = Buffer.from(JSON.stringify({ interviewer, value }), 'utf-8').toString('base64');
+    const token = encodeToken({ interviewer, value });
     const link = `${window.location.origin}/upload/${token}`;
 
     const updated = [...assignments];
