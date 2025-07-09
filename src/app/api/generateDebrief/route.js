@@ -4,7 +4,7 @@ export async function POST(req) {
   const body = await req.json();
   const { transcriptText } = body;
 
-  const provider = process.env.AI_PROVIDER;
+  const provider = 'AIzaSyDw3z5T8bDvmjR0eaJntUZh-UDu_V6W2b4';
 
   if (provider === 'gemini') {
     return await handleWithGemini(transcriptText);

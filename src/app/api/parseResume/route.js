@@ -14,7 +14,7 @@ export async function POST(req) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const base64 = buffer.toString('base64');
 
-    const provider = process.env.AI_PROVIDER;
+    const provider = 'gemini';
 
     let responseText;
 
@@ -36,7 +36,7 @@ export async function POST(req) {
 }
 
 async function parseWithGemini(base64) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = 'AIzaSyDw3z5T8bDvmjR0eaJntUZh-UDu_V6W2b4';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
   const prompt = `
 You're an API that extracts information from resumes. Only respond with valid JSON and nothing else.

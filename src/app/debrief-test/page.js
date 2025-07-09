@@ -1,5 +1,5 @@
 async function handleWithGemini(transcriptText) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = 'AIzaSyDw3z5T8bDvmjR0eaJntUZh-UDu_V6W2b4';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
 
   const prompt = `
