@@ -1,14 +1,25 @@
 'use client';
+import useAuthRedirect from '@/hooks/useAuthRedirect';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/firebase';
 
 export default function Home() {
-  const router = useRouter();
-
+  const { loading, shouldRender } = useAuthRedirect();   // ✅ improved auth guard
+  const router = useRouter();          // ✅ always runs
   const [formData, setFormData] = useState({
     name: '',
     location: '',
+    position: '',
+    collegeName: '',
+    yearPassedOut: '',
+    branch: '',
+    skills: '',
+    cgpa: '',
   });
+
+  if (loading || !shouldRender) return null;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,7 +34,7 @@ export default function Home() {
     }
 
     const formDataUpload = new FormData();
-    formDataUpload.append('file', file);
+    formDataUpload.append('resume', file);
 
     try {
       const response = await fetch('/api/parseResume', {
@@ -53,6 +64,7 @@ export default function Home() {
         setFormData({
           name: result.name || '',
           location: result.location || '',
+          position: '',
         });
         alert('✅ Resume parsed using AI!');
       }
@@ -68,10 +80,9 @@ export default function Home() {
         <img src="/Landmark.png" alt="Logitiq HR" className="h-16 w-auto" />
       </div>
 
+
       <div className="max-w-2xl mx-auto mt-20 bg-white text-gray-800 p-8 rounded-2xl shadow-2xl">
-        <h1 className="text-2xl font-bold text-center text-blue-700 mb-6">
-          Candidate Intake Form
-        </h1>
+        <h1 className="text-2xl font-bold text-center text-blue-700 mb-6">Candidate Details</h1>
 
         <div className="space-y-5">
           <div>
@@ -87,7 +98,7 @@ export default function Home() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Candidate Name</label>
+            <label className="block font-semibold mb-1">Candidate Details</label>
             <input
               type="text"
               name="name"
@@ -109,10 +120,87 @@ export default function Home() {
               placeholder="e.g. Bhopal"
             />
           </div>
+
+          <div>
+            <label className="block font-semibold mb-1">Position</label>
+            <input
+              type="text"
+              name="position"
+              value={formData.position}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg bg-gray-50"
+              placeholder="e.g. Product Manager"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-1">College Name</label>
+            <input
+              type="text"
+              name="collegeName"
+              value={formData.collegeName}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg bg-gray-50"
+              placeholder="e.g. Bennett University"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-1">Year Passed Out</label>
+            <input
+              type="text"
+              name="yearPassedOut"
+              value={formData.yearPassedOut}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg bg-gray-50"
+              placeholder="e.g. 2023"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-1">Branch</label>
+            <input
+              type="text"
+              name="branch"
+              value={formData.branch}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg bg-gray-50"
+              placeholder="e.g. Computer Science"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-1">Skills</label>
+            <input
+              type="text"
+              name="skills"
+              value={formData.skills}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg bg-gray-50"
+              placeholder="e.g. Leadership, JavaScript, Teamwork"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-1">CGPA (Optional)</label>
+            <input
+              type="text"
+              name="cgpa"
+              value={formData.cgpa}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg bg-gray-50"
+              placeholder="e.g. 8.5"
+            />
+          </div>
         </div>
 
         <button
-          onClick={() => router.push('/assign')}
+          onClick={() => {
+            const token = encodeURIComponent(
+              btoa(JSON.stringify(formData))
+            );
+            router.push(`/assign?token=${token}`);
+          }}
           className="mt-6 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200"
         >
           Next →

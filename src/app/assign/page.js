@@ -1,19 +1,32 @@
 'use client';
+import useAuthRedirect from '@/hooks/useAuthRedirect';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const valueOptions = ['Integrity', 'Listen', 'Empower', 'ADAPT', 'Deliver'];
 
 export default function AssignPage() {
-  const [assignments, setAssignments] = useState(
-    Array(5).fill({ interviewer: '', value: '', link: '' })
-  );
+  useAuthRedirect();
+  const [assignments, setAssignments] = useState([
+    { round: 'Round 1', interviewer: '', email: '', values: [], link: '' },
+  ]);
 
   const router = useRouter();
 
   const handleChange = (index, field, value) => {
     const updated = [...assignments];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[index][field] = value;
+    setAssignments(updated);
+  };
+
+  const handleValueChange = (index, value) => {
+    const updated = [...assignments];
+    const current = updated[index].values;
+    if (current.includes(value)) {
+      updated[index].values = current.filter((v) => v !== value);
+    } else {
+      updated[index].values = [...current, value];
+    }
     setAssignments(updated);
   };
 
@@ -24,18 +37,32 @@ export default function AssignPage() {
   };
 
   const handleGenerate = (index) => {
-    const { interviewer, value } = assignments[index];
-    if (!interviewer || !value) {
-      alert("Please fill all fields.");
+    const { interviewer, email, values } = assignments[index];
+    if (!interviewer || !email || values.length === 0) {
+      alert('Please fill all fields and select at least one value.');
       return;
     }
 
-    const token = encodeToken({ interviewer, value });
+    const token = encodeToken({ interviewer, email, values });
     const link = `${window.location.origin}/upload/${token}`;
 
     const updated = [...assignments];
-    updated[index] = { ...updated[index], link };
+    updated[index].link = link;
     setAssignments(updated);
+    localStorage.setItem('assignments', JSON.stringify(updated)); // Save to localStorage
+  };
+
+  const handleAddInterviewer = () => {
+    setAssignments([
+      ...assignments,
+      {
+        round: `Round ${assignments.length + 1}`,
+        interviewer: '',
+        email: '',
+        values: [],
+        link: '',
+      },
+    ]);
   };
 
   return (
@@ -47,51 +74,87 @@ export default function AssignPage() {
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
-        {assignments.map((assignment, index) => (
-          <div key={index} className="bg-white text-black rounded-lg shadow p-4 text-sm space-y-3">
-            <label className="block mb-2 font-medium">Interviewer Name</label>
+      <div className="space-y-6 max-w-5xl mx-auto">
+        {assignments.map((item, index) => (
+          <div key={index} className="bg-white text-black rounded-xl p-5 shadow space-y-3">
             <input
               type="text"
-              className="w-full border rounded p-2 mb-4"
-              value={assignment.interviewer}
+              placeholder="Round"
+              value={item.round}
+              readOnly
+              className="w-full p-2 border rounded font-semibold text-blue-700 bg-gray-100 cursor-not-allowed"
+            />
+            <input
+              type="text"
+              placeholder="Interviewer Name"
+              value={item.interviewer}
               onChange={(e) => handleChange(index, 'interviewer', e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+            <input
+              type="email"
+              placeholder="Interviewer Email"
+              value={item.email}
+              onChange={(e) => handleChange(index, 'email', e.target.value)}
+              className="w-full p-2 border rounded"
             />
 
-            <label className="block mb-2 font-medium">Select Value</label>
-            <select
-              className="w-full border rounded p-2 mb-4"
-              value={assignment.value}
-              onChange={(e) => handleChange(index, 'value', e.target.value)}
-            >
-              <option value="">-- Select --</option>
+            <label className="block font-semibold">Select Values</label>
+            <div className="flex flex-wrap gap-2">
               {valueOptions.map((val) => (
-                <option key={val} value={val}>{val}</option>
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => handleValueChange(index, val)}
+                  className={`px-3 py-1 rounded-full border ${
+                    item.values.includes(val)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200'
+                  }`}
+                >
+                  {val}
+                </button>
               ))}
-            </select>
+            </div>
 
             <button
               onClick={() => handleGenerate(index)}
-              className="bg-blue-600 text-white py-1.5 px-3 rounded w-full text-sm hover:bg-blue-700"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mt-3"
             >
               Generate Upload Link
             </button>
 
-            {assignment.link && (
-              <div className="mt-2 text-xs break-words">
-                <span className="font-semibold text-gray-700">Link:</span>{' '}
+            {item.link && (
+              <div className="text-sm break-words">
+                <strong>Link:</strong>{' '}
                 <a
-                  href={assignment.link}
+                  href={item.link}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 underline"
                 >
-                  {assignment.link}
+                  {item.link}
                 </a>
               </div>
             )}
           </div>
         ))}
+
+        <button
+          onClick={handleAddInterviewer}
+          className="bg-white text-blue-600 px-4 py-2 rounded hover:bg-blue-100 border"
+        >
+          + Add Interviewer
+        </button>
+
+        <div className="text-center mt-10">
+          <button
+            onClick={() => router.push('/dashboard')} // ✅ NOW GOES TO DASHBOARD
+            className="bg-white text-blue-600 font-semibold px-6 py-3 rounded hover:bg-blue-100"
+          >
+            Next →
+          </button>
+        </div>
       </div>
     </div>
   );
