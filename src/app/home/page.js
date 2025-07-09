@@ -21,7 +21,7 @@ export default function HomeDashboard() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-blue-700">Interview Summary</h1>
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/assign')}
           className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
         >
           New Interview

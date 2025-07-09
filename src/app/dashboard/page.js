@@ -78,45 +78,47 @@ export default function Dashboard() {
 
       <h1 className="text-3xl font-bold text-white mb-10 text-center">Upload Tracker Dashboard</h1>
 
-      <div className="grid grid-cols-4 gap-6">
-        {['Interviewer', 'Assigned Value(s)', 'Status', 'Reminder'].map((header, colIdx) => (
-          <div key={colIdx} className="flex flex-col items-center gap-4">
-            <div className="w-44 py-2 px-4 bg-white/90 backdrop-blur-lg text-black rounded-full shadow font-semibold text-center">
-              {header}
+      <div className="w-full overflow-x-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 min-w-[600px]">
+          {['Interviewer', 'Assigned Value(s)', 'Status', 'Reminder'].map((header, colIdx) => (
+            <div key={colIdx} className="flex flex-col items-center gap-4">
+              <div className="w-44 py-2 px-4 bg-white/90 backdrop-blur-lg text-black rounded-full shadow font-semibold text-center">
+                {header}
+              </div>
+
+              {assignments.map((item, rowIdx) => {
+                let content;
+                switch (colIdx) {
+                  case 0: content = item.interviewer; break;
+                  case 1: content = (item.values || []).join(', '); break;
+                  case 2:
+                    content = (
+                      <span className="font-medium text-red-500">
+                        Pending
+                      </span>
+                    );
+                    break;
+                  case 3:
+                    content = (
+                      <button className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 text-sm">
+                        Send Reminder
+                      </button>
+                    );
+                    break;
+                }
+
+                return (
+                  <div
+                    key={rowIdx}
+                    className="w-44 min-h-[44px] flex items-center justify-center text-black bg-white/90 backdrop-blur-lg rounded-xl shadow hover:scale-[1.03] transition-transform"
+                  >
+                    {content}
+                  </div>
+                );
+              })}
             </div>
-
-            {assignments.map((item, rowIdx) => {
-              let content;
-              switch (colIdx) {
-                case 0: content = item.interviewer; break;
-                case 1: content = (item.values || []).join(', '); break;
-                case 2:
-                  content = (
-                    <span className="font-medium text-red-500">
-                      Pending
-                    </span>
-                  );
-                  break;
-                case 3:
-                  content = (
-                    <button className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 text-sm">
-                      Send Reminder
-                    </button>
-                  );
-                  break;
-              }
-
-              return (
-                <div
-                  key={rowIdx}
-                  className="w-44 min-h-[44px] flex items-center justify-center text-black bg-white/90 backdrop-blur-lg rounded-xl shadow hover:scale-[1.03] transition-transform"
-                >
-                  {content}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div className="mt-12 bg-white/90 backdrop-blur-lg p-6 rounded shadow-md text-black w-full max-w-3xl">
