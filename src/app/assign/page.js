@@ -1,11 +1,11 @@
 'use client';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const valueOptions = ['Integrity', 'Listen', 'Empower', 'ADAPT', 'Deliver'];
 
-export default function AssignPage() {
+function AssignPageContent() {
   useAuthRedirect();
   const [assignments, setAssignments] = useState([
     { round: 'Round 1', interviewer: '', email: '', values: [], link: '' },
@@ -215,5 +215,13 @@ export default function AssignPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AssignPageWrapper(props) {
+  return (
+    <Suspense>
+      <AssignPageContent {...props} />
+    </Suspense>
   );
 }
