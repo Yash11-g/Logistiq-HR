@@ -1,7 +1,7 @@
 'use client';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const valueOptions = ['Integrity', 'Listen', 'Empower', 'ADAPT', 'Deliver'];
 
@@ -12,6 +12,20 @@ export default function AssignPage() {
   ]);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [candidateDetails, setCandidateDetails] = useState(null);
+
+  useEffect(() => {
+    const candidateToken = searchParams.get('candidate');
+    if (candidateToken) {
+      try {
+        const decoded = JSON.parse(atob(decodeURIComponent(candidateToken)));
+        setCandidateDetails(decoded);
+      } catch (e) {
+        setCandidateDetails(null);
+      }
+    }
+  }, [searchParams]);
 
   const handleChange = (index, field, value) => {
     const updated = [...assignments];
@@ -36,20 +50,57 @@ export default function AssignPage() {
     return base64;
   };
 
-  const handleGenerate = (index) => {
+  // Helper to generate a short random ID
+  const generateShortId = () => Math.random().toString(36).substring(2, 10);
+
+  const handleGenerate = async (index) => {
     const { interviewer, email, values } = assignments[index];
     if (!interviewer || !email || values.length === 0) {
       alert('Please fill all fields and select at least one value.');
       return;
     }
 
-    const token = encodeToken({ interviewer, email, values });
-    const link = `${window.location.origin}/upload/${token}`;
+    const token = encodeToken({ interviewer, email, values, candidate: candidateDetails });
+    const shortId = generateShortId();
+    
+    // Store in localStorage for local access
+    localStorage.setItem(`upload_token_${shortId}`, token);
+    
+    // Store on server for email links
+    try {
+      await fetch('/api/storeToken', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shortId, token }),
+      });
+    } catch (err) {
+      console.error('Failed to store token on server:', err);
+    }
+    
+    // Create short link for both display and email
+    const shortLink = `${window.location.origin}/upload/${shortId}`;
 
     const updated = [...assignments];
-    updated[index].link = link;
+    updated[index].link = shortLink;
     setAssignments(updated);
     localStorage.setItem('assignments', JSON.stringify(updated)); // Save to localStorage
+
+    // Send email to interviewer with the short link
+    try {
+      const res = await fetch('/api/sendMail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, link: shortLink }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Upload link sent to interviewer!');
+      } else {
+        alert('Failed to send email: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Failed to send email: ' + err.message);
+    }
   };
 
   const handleAddInterviewer = () => {
@@ -147,12 +198,19 @@ export default function AssignPage() {
           + Add Interviewer
         </button>
 
-        <div className="text-center mt-10">
+        <div className="text-center mt-10 flex justify-center gap-4">
           <button
-            onClick={() => router.push('/dashboard')} // ✅ NOW GOES TO DASHBOARD
+            type="button"
+            onClick={() => router.back()}
             className="bg-white text-blue-600 font-semibold px-6 py-3 rounded hover:bg-blue-100"
           >
-            Next →
+            Back
+          </button>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="bg-white text-blue-600 font-semibold px-6 py-3 rounded hover:bg-blue-100"
+          >
+            Next
           </button>
         </div>
       </div>

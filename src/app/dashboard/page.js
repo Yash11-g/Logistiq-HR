@@ -3,6 +3,7 @@
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
   useAuthRedirect();
@@ -70,15 +71,49 @@ export default function Dashboard() {
     }
   };
 
+  const handleSendReminder = async (item) => {
+    try {
+      const res = await fetch('/api/sendMail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: item.email,
+          link: item.link,
+          message: `Hello ${item.interviewer},<br/><br/>This is a reminder to please upload your transcript for: <b>${(item.values || []).join(', ')}</b>.<br/>Use this link: <a href="${item.link}">${item.link}</a><br/><br/>Thank you!`,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Reminder sent!');
+      } else {
+        alert('Failed to send reminder: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Failed to send reminder: ' + err.message);
+    }
+  };
+
+  const router = useRouter();
+
   return (
     <div className="min-h-screen bg-[#2E65F3] flex flex-col items-center justify-center p-6">
       <div className="absolute top-6 left-6">
         <img src="/Landmark.png" alt="Logistiq Logo" className="h-12" />
       </div>
 
+      <div className="absolute top-6 right-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="bg-white text-blue-600 font-semibold px-6 py-3 rounded hover:bg-blue-100"
+        >
+          Back
+        </button>
+      </div>
+
       <h1 className="text-3xl font-bold text-white mb-10 text-center">Upload Tracker Dashboard</h1>
 
-      <div className="w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto mb-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 min-w-[600px]">
           {['Interviewer', 'Assigned Value(s)', 'Status', 'Reminder'].map((header, colIdx) => (
             <div key={colIdx} className="flex flex-col items-center gap-4">
@@ -100,7 +135,10 @@ export default function Dashboard() {
                     break;
                   case 3:
                     content = (
-                      <button className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 text-sm">
+                      <button
+                        className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 text-sm"
+                        onClick={() => handleSendReminder(item)}
+                      >
                         Send Reminder
                       </button>
                     );
@@ -121,28 +159,47 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="mt-12 bg-white/90 backdrop-blur-lg p-6 rounded shadow-md text-black w-full max-w-3xl">
-        <h2 className="text-lg font-semibold mb-4">Generate AI Debrief</h2>
-        <button
-          onClick={handleGenerateDebrief}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
-        >
-          Generate Debrief
-        </button>
-
-        {debrief && (
-          <div className="mt-4 whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded border">
-            <strong>AI Generated Debrief:</strong>
-            <p>{debrief}</p>
-          </div>
-        )}
-        {debriefData && typeof debriefData === 'object' && (
+      {/* Generate Debrief Button Centered */}
+      <div className="flex flex-col items-center w-full max-w-3xl">
+        {!debriefData && (
           <button
-            onClick={handleDownloadPDF}
-            className="mt-4 inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+            onClick={handleGenerateDebrief}
+            className="bg-green-600 hover:bg-green-700 text-white text-xl px-8 py-4 rounded font-semibold mb-8 shadow"
           >
-            Download Filled Debrief (PDF)
+            Generate Debrief
           </button>
+        )}
+
+        {/* Debrief Info Tile */}
+        {debriefData && (
+          <>
+            <div className="bg-white p-8 rounded-xl shadow-md w-full mb-6 text-black">
+              <h2 className="text-2xl font-bold mb-4 text-blue-800">AI Generated Debrief</h2>
+              <div className="mb-2 text-black"><b>Candidate Name:</b> {debriefData.candidateName}</div>
+              <div className="mb-2 text-black"><b>Role:</b> {debriefData.role}</div>
+              <div className="mb-2 text-black"><b>Location:</b> {debriefData.location}</div>
+              <div className="mb-2 text-black"><b>Organization:</b> {debriefData.organization}</div>
+              <div className="mb-2 text-black"><b>Experience:</b> {debriefData.experience}</div>
+              <div className="mb-4 text-black"><b>Debrief:</b> {debriefData.debriefText}</div>
+              <div className="mb-4 text-black">
+                <b>Values:</b>
+                <ul className="list-disc ml-6 mt-2 text-black">
+                  {Object.entries(debriefData.values || {}).map(([key, value]) => (
+                    <li key={key} className="text-black"><b>{key}:</b> {value}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mb-2 text-black"><b>Strengths:</b> {debriefData.strengths}</div>
+              <div className="mb-2 text-black"><b>Improvements:</b> {debriefData.improvements}</div>
+              <div className="mb-2 text-black"><b>Discussion Points:</b> {debriefData.discussionPoints}</div>
+            </div>
+            <button
+              onClick={handleDownloadPDF}
+              className="bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700 font-semibold shadow"
+            >
+              Download Filled Debrief (PDF)
+            </button>
+          </>
         )}
       </div>
     </div>

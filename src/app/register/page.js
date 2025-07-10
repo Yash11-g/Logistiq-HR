@@ -17,8 +17,8 @@ export default function RegisterPage() {
     setSuccess('');
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      setSuccess('Registration successful! Redirecting to dashboard...');
-      setTimeout(() => router.push('/dashboard'), 1200);
+      setSuccess('Registration successful! Redirecting to homepage...');
+      setTimeout(() => router.push('/home'), 1200);
     } catch (err) {
       setError(err.message);
     }
