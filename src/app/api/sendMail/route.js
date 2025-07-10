@@ -6,13 +6,13 @@ export async function POST(req) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PASS,
+      user: 'your_gmail@gmail.com', // <-- replace with your actual Gmail address
+      pass: 'your_gmail_app_password', // <-- replace with your actual Gmail app password
     },
   });
 
   const mailOptions = {
-    from: process.env.GMAIL_USER,
+    from: 'your_gmail@gmail.com', // <-- replace with your actual Gmail address
     to: email,
     subject: 'Your Interview Upload Link',
     html: message
