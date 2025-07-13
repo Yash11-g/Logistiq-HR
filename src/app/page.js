@@ -19,6 +19,18 @@ export default function Home() {
     cgpa: '',
   });
 
+  // Ensure all form values are always strings
+  const safeFormData = {
+    name: formData.name || '',
+    location: formData.location || '',
+    position: formData.position || '',
+    collegeName: formData.collegeName || '',
+    yearPassedOut: formData.yearPassedOut || '',
+    branch: formData.branch || '',
+    skills: formData.skills || '',
+    cgpa: formData.cgpa || '',
+  };
+
   if (loading || !shouldRender) return null;
 
   const handleChange = (e) => {
@@ -61,11 +73,19 @@ export default function Home() {
       if (result.error) {
         alert('❌ ' + result.error);
       } else {
-        setFormData({
+        console.log('📋 Parsed result:', result);
+        const updatedFormData = {
           name: result.name || '',
           location: result.location || '',
-          position: '',
-        });
+          position: result.position || '',
+          collegeName: result.collegeName || '',
+          yearPassedOut: result.yearPassedOut || '',
+          branch: result.branch || '',
+          skills: result.skills || '',
+          cgpa: result.cgpa || '',
+        };
+        console.log('📝 Updated form data:', updatedFormData);
+        setFormData(updatedFormData);
         alert('✅ Resume parsed using AI!');
       }
     } catch (err) {
@@ -101,7 +121,7 @@ export default function Home() {
             <input
               type="text"
               name="name"
-              value={formData.name}
+              value={safeFormData.name}
               onChange={handleChange}
               className="w-full p-3 border rounded-lg bg-gray-50"
               placeholder="e.g. Jane Doe"
@@ -113,7 +133,7 @@ export default function Home() {
             <input
               type="text"
               name="location"
-              value={formData.location}
+              value={safeFormData.location}
               onChange={handleChange}
               className="w-full p-3 border rounded-lg bg-gray-50"
               placeholder="e.g. Bhopal"
@@ -125,7 +145,7 @@ export default function Home() {
             <input
               type="text"
               name="position"
-              value={formData.position}
+              value={safeFormData.position}
               onChange={handleChange}
               className="w-full p-3 border rounded-lg bg-gray-50"
               placeholder="e.g. Product Manager"
@@ -137,7 +157,7 @@ export default function Home() {
             <input
               type="text"
               name="collegeName"
-              value={formData.collegeName}
+              value={safeFormData.collegeName}
               onChange={handleChange}
               className="w-full p-3 border rounded-lg bg-gray-50"
               placeholder="e.g. Bennett University"
@@ -149,7 +169,7 @@ export default function Home() {
             <input
               type="text"
               name="yearPassedOut"
-              value={formData.yearPassedOut}
+              value={safeFormData.yearPassedOut}
               onChange={handleChange}
               className="w-full p-3 border rounded-lg bg-gray-50"
               placeholder="e.g. 2023"
@@ -161,7 +181,7 @@ export default function Home() {
             <input
               type="text"
               name="branch"
-              value={formData.branch}
+              value={safeFormData.branch}
               onChange={handleChange}
               className="w-full p-3 border rounded-lg bg-gray-50"
               placeholder="e.g. Computer Science"
@@ -173,7 +193,7 @@ export default function Home() {
             <input
               type="text"
               name="skills"
-              value={formData.skills}
+              value={safeFormData.skills}
               onChange={handleChange}
               className="w-full p-3 border rounded-lg bg-gray-50"
               placeholder="e.g. Leadership, JavaScript, Teamwork"
@@ -185,7 +205,7 @@ export default function Home() {
             <input
               type="text"
               name="cgpa"
-              value={formData.cgpa}
+              value={safeFormData.cgpa}
               onChange={handleChange}
               className="w-full p-3 border rounded-lg bg-gray-50"
               placeholder="e.g. 8.5"
