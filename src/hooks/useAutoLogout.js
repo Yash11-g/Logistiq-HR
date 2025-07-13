@@ -10,11 +10,9 @@ export default function useAutoLogout(timeoutMs = AUTO_LOGOUT_MS) {
   const pathname = usePathname();
   const timerRef = useRef();
 
-  // Exclude /upload/[token] and any subroutes
-  const isUploadPage = pathname.startsWith('/upload/');
-
   useEffect(() => {
-    if (isUploadPage) return; // Do nothing on upload page
+    // Exclude /upload/[token] and any subroutes
+    if (pathname.startsWith('/upload/')) return;
 
     const resetTimer = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -33,5 +31,5 @@ export default function useAutoLogout(timeoutMs = AUTO_LOGOUT_MS) {
       if (timerRef.current) clearTimeout(timerRef.current);
       events.forEach(event => window.removeEventListener(event, resetTimer));
     };
-  }, [router, timeoutMs, isUploadPage]);
+  }, [router, timeoutMs, pathname]);
 } 
